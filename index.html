@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLAMES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #f4ece2;
+    --bg-0: #17110d;
+    --bg-1: #241a13;
+    --ember-1: #ff6a3d;
+    --ember-2: #ffb238;
+    --ember-3: #c8372a;
+    --muted: #b8a99a;
+    --card: #2a1f17;
+    --card-line: rgba(255,178,56,0.18);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 20% -10%, #3a2416 0%, var(--bg-0) 55%), var(--bg-0);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  .grain{
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 1;
+  }
+
+  .wrap{
+    position: relative;
+    z-index: 2;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 64px 24px 80px;
+  }
+
+  header{
+    text-align: center;
+    margin-bottom: 44px;
+  }
+
+  .eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ember-2);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(48px, 11vw, 76px);
+    margin: 0;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    background: linear-gradient(180deg, #fff2e2 0%, var(--ember-2) 55%, var(--ember-1) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .letters{
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 18px;
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .letters span{
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--card-line);
+    border-radius: 8px;
+    color: var(--muted);
+    transition: all 0.4s ease;
+  }
+  .letters span.active{
+    color: var(--bg-0);
+    background: linear-gradient(160deg, var(--ember-2), var(--ember-1));
+    border-color: transparent;
+    box-shadow: 0 0 18px rgba(255,106,61,0.55);
+  }
+  .letters span.dead{
+    color: #5a4a3d;
+    text-decoration: line-through;
+    border-color: rgba(90,74,61,0.4);
+    transform: scale(0.9);
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--card), #201712);
+    border: 1px solid var(--card-line);
+    border-radius: 20px;
+    padding: 32px;
+    margin-top: 40px;
+  }
+
+  label{
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  input[type=text]{
+    width: 100%;
+    background: #17110d;
+    border: 1px solid var(--card-line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    margin-bottom: 22px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  input[type=text]:focus{ border-color: var(--ember-1); }
+  input[type=text]::placeholder{ color: #5a4a3d; }
+
+  button{
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(160deg, var(--ember-2), var(--ember-1));
+    color: #1a0f08;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:hover{ transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,106,61,0.35); }
+  button:active{ transform: translateY(0); }
+  button:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .result{
+    margin-top: 28px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+  }
+  .result.show{ opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  .result-img{
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border-radius: 16px;
+    margin: 0 auto 20px;
+    display: block;
+    border: 1px solid var(--card-line);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+
+  .result-label{
+    font-family: 'Fraunces', serif;
+    font-size: 34px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+
+  .result-sub{
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  footer{
+    text-align: center;
+    margin-top: 50px;
+    color: #5a4a3d;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .spark{
+    position: fixed;
+    top: -10px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">the classic name game</div>
+    <h1>FLAMES</h1>
+    <div class="letters" id="letters"></div>
+  </header>
+
+  <div class="card">
+    <label for="name1">Your name</label>
+    <input type="text" id="name1" placeholder="e.g. Viswanathan" autocomplete="off">
+
+    <label for="name2">Their name</label>
+    <input type="text" id="name2" placeholder="e.g. Suriyakumari" autocomplete="off">
+
+    <button id="calcBtn">Reveal the result</button>
+
+    <div class="result" id="result">
+      <img class="result-img" id="resultImg" src="" alt="">
+      <p class="result-label" id="resultLabel"></p>
+      <p class="result-sub" id="resultSub"></p>
+    </div>
+  </div>
+
+  <footer>Friends · Lovers · Affectionate · Marriage · Enemies · Siblings</footer>
+</div>
+
+<script>
+const RESULTS = {
+  F: { label: "Friends",       sub: "Built to last, no drama required.", img: "images/friends.png" },
+  L: { label: "Lovers",        sub: "The sparks are undeniable.",        img: "images/lovers.png" },
+  A: { label: "Affectionate",  sub: "Warm, soft, and full of care.",     img: "images/affectionate.png" },
+  M: { label: "Marriage",      sub: "This one's going the distance.",    img: "images/marriage.png" },
+  E: { label: "Enemies",       sub: "Best admired from a distance.",     img: "images/enemies.png" },
+  S: { label: "Siblings",      sub: "Family, whether you chose it or not.", img: "images/siblings.png" },
+};
+
+const lettersEl = document.getElementById('letters');
+const FLAMES_ORDER = ['F','L','A','M','E','S'];
+FLAMES_ORDER.forEach(ch => {
+  const span = document.createElement('span');
+  span.textContent = ch;
+  span.dataset.letter = ch;
+  lettersEl.appendChild(span);
+});
+
+function removeCommonLetters(a, b){
+  const l1 = a.split('');
+  const l2 = b.split('');
+  for(let i = 0; i < l1.length; i++){
+    const idx = l2.indexOf(l1[i]);
+    if(idx !== -1){
+      l2.splice(idx, 1);
+      l1.splice(i, 1);
+      i--;
+    }
+  }
+  return l1.length + l2.length;
+}
+
+function computeFlamesSteps(count){
+  let flames = ['F','L','A','M','E','S'];
+  const steps = []; // sequence of eliminated letters, in order
+  let index = 0;
+  while(flames.length > 1){
+    index = (index + count - 1) % flames.length;
+    steps.push(flames[index]);
+    flames.splice(index, 1);
+    if(flames.length > 0) index = index % flames.length;
+  }
+  return { steps, finalLetter: flames[0] };
+}
+
+const btn = document.getElementById('calcBtn');
+const resultBox = document.getElementById('result');
+const resultImg = document.getElementById('resultImg');
+const resultLabel = document.getElementById('resultLabel');
+const resultSub = document.getElementById('resultSub');
+
+btn.addEventListener('click', () => {
+  const n1 = document.getElementById('name1').value.toLowerCase().replace(/\s+/g, '');
+  const n2 = document.getElementById('name2').value.toLowerCase().replace(/\s+/g, '');
+
+  if(!n1 || !n2){
+    alert('Please enter both names.');
+    return;
+  }
+
+  resultBox.classList.remove('show');
+  lettersEl.querySelectorAll('span').forEach(s => { s.className = ''; });
+  btn.disabled = true;
+
+  const count = removeCommonLetters(n1, n2);
+  const { steps, finalLetter } = computeFlamesSteps(count);
+
+  // Animate letters getting eliminated one by one, then reveal result
+  steps.forEach((letter, i) => {
+    setTimeout(() => {
+      const el = lettersEl.querySelector(`span[data-letter="${letter}"]`);
+      if(el) el.classList.add('dead');
+    }, i * 380);
+  });
+
+  setTimeout(() => {
+    const el = lettersEl.querySelector(`span[data-letter="${finalLetter}"]`);
+    if(el) el.classList.add('active');
+
+    const data = RESULTS[finalLetter];
+    resultImg.src = data.img;
+    resultImg.alt = data.label;
+    resultLabel.textContent = data.label;
+    resultSub.textContent = data.sub;
+    resultBox.classList.add('show');
+    burstSparks();
+    btn.disabled = false;
+  }, steps.length * 380 + 300);
+});
+
+function burstSparks(){
+  const colors = ['#ff6a3d', '#ffb238', '#c8372a', '#fff2e2'];
+  for(let i = 0; i < 40; i++){
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const size = 4 + Math.random() * 6;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.background = colors[Math.floor(Math.random() * colors.length)];
+    s.style.opacity = 0.9;
+    document.body.appendChild(s);
+
+    const duration = 1800 + Math.random() * 1200;
+    const drift = (Math.random() - 0.5) * 120;
+    s.animate([
+      { transform: 'translate(0,0)', opacity: 0.9 },
+      { transform: `translate(${drift}px, 100vh)`, opacity: 0 }
+    ], { duration, easing: 'ease-in' });
+
+    setTimeout(() => s.remove(), duration);
+  }
+}
+</script>
+</body>
+</html>
